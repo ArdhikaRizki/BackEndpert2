@@ -1,0 +1,60 @@
+# =========================
+# Dependencies
+# =========================
+node_modules/
+
+# =========================
+# Build / Output
+# =========================
+dist/
+build/
+out/
+.next/
+.nuxt/
+.vite/
+
+# =========================
+# TypeScript build artifacts
+# =========================
+*.tsbuildinfo
+*.js
+*.js.map
+
+# (Kalau kamu simpan hasil compile di dalam /dist,
+# cukup ignore folder dist saja, tidak perlu *.js *.map)
+
+# =========================
+# Environment variables
+# =========================
+.env
+.env.*    # .env.local, .env.development, dll
+
+# =========================
+# Logs & caches
+# =========================
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+*.log
+.cache/
+coverage/
+
+# =========================
+# Prisma
+# =========================
+prisma/dev.db
+prisma/dev.db-journal
+*.sqlite
+*.db
+# prisma/migrations/ tetap di-commit kalau perlu
+
+# =========================
+# Sistem & Editor
+# =========================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+.history/
