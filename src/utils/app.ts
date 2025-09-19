@@ -7,8 +7,8 @@ import { MErrorHandler } from '../middlewares/error.middleware';
 
 const app = express();
 
-app.use(express.json()); // ← parse JSON body
-app.use(express.urlencoded({ extended: true })); // ← parse form data
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
 
 app.use (cors());
 app.use("/api/v1/auth", authRoutes);
