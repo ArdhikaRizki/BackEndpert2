@@ -1,18 +1,21 @@
 import { Request, Response, NextFunction } from "express";
-import Joi  from "joi";
+import Joi from "joi";
 
-export const MValidate = (schema: Joi.ObjectSchema) => { 
-    return (req: Request, res: Response, next: NextFunction): void => { 
-        const { error } = schema.validate(req.body, { abortEarly: false });
-        
-        if (error) { 
-            const validationError = error.details.map((detail) => {
-                return Error(detail.message);
-            })[0];
+export const MValidate = (
+  schema: Joi.ObjectSchema,
+  type: "body" | "params" | "query" = "body"
+) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const { error } = schema.validate(req[type], { abortEarly: false });
 
-            return next(validationError);
-        }
+    if (error) {
+      const validationError = error.details.map((detail) => {
+        return Error(detail.message);
+      })[0];
 
-        next();
+      return next(validationError);
     }
-}
+
+    next();
+  };
+};

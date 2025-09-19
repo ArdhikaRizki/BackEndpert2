@@ -1,30 +1,53 @@
-// src/utils/jwt.util.ts
+import { Admin } from "@prisma/client";
+import ms, { StringValue } from "ms";
+import jwt from "jsonwebtoken";
+import { redisClient } from "../configs/redis.config";
 
-import jwt from 'jsonwebtoken';
+const JWT_SECRET = process.env.JWT_SECRET || "default-secret";
+const JWT_EXPIRES_IN = (process.env.JWT_EXPIRES_IN || "1m") as StringValue;
 
-// Interface untuk mendefinisikan data apa saja yang akan disimpan di dalam token
-interface IJwtPayload {
-  id: number;
-  username: string;
-  email: string;
-  name: string;
-}
+export const UGenerateToken = async (admin: Admin) => {
+  const token = jwt.sign(admin, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 
-/**
- * Fungsi untuk generate JWT
- * @param payload Data yang akan dimasukkan ke dalam token
- * @returns {string} Token JWT
- */
-export const UGenerateToken = (payload: IJwtPayload): string => {
-  // Ambil secret key dari environment variable, jangan tulis langsung di kode!
-  const secretKey = process.env.JWT_SECRET;
+  const key = `token:${token.split(".")[2]}:${admin.id}`;
 
-  if (!secretKey) {
-    throw new Error('JWT_SECRET tidak ditemukan di environment variables');
-  }
-
-  // Buat token dengan masa berlaku 1 hari (bisa disesuaikan)
-  const token = jwt.sign(payload, secretKey, { expiresIn: '1d' });
+  await redisClient.set(key, token, {
+    expiration: {
+      type: "EX",
+      value: ms(JWT_EXPIRES_IN) / 1000,
+    },
+  });
 
   return token;
+};
+
+export const UVerifyToken = async (token: string) => {
+  const payload = jwt.verify(token, JWT_SECRET) as Admin | null;
+
+  if (!payload) {
+    throw Error("Unauthorized");
+  }
+
+  const key = `token:${token.split(".")[2]}:${payload.id}`;
+
+  const data = await redisClient.get(key);
+
+  if (!data || data !== token) {
+    throw Error("Unauthorized");
+  }
+
+  return payload;
+};
+
+export const UInvalidateToken = async (
+  adminId: number,
+  token: string
+): Promise<void> => {
+  try {
+    const key = `token:${token.split(".")[2]}:${adminId}`;
+    await redisClient.del(key);
+    return;
+  } catch {
+    return;
+  }
 };

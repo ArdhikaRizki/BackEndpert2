@@ -1,40 +1,43 @@
-import { NextFunction, Request, Response } from "express";
-
 import { IGlobalResponse } from "../interfaces/global.interface";
+import { Request, Response, NextFunction } from "express";
 
 export const MErrorHandler = (
-    err: Error,
-    req: Request,
-    res: Response,
-    next: NextFunction
+  err: Error,
+  req: Request,
+  res: Response,
+  next: NextFunction
 ): void => {
-    console.error("Error:", err);
-    const isDevelopment = process.env.NODE_ENV === "development";
+  console.error("Error:", err);
 
-    if (err instanceof Error) {
-        const response: IGlobalResponse = {
-            status: false,
-            message: err.message,
-        };
+  const isDevelopment = process.env.NODE_ENV === "development";
 
-        const errorObj: any = { message: err.message };
-        if (err.name) {
-            errorObj.name = err.name;
-        }
-        if (isDevelopment && err.stack) {
-            errorObj.detail = err.stack;
-        }
-        response.error = errorObj;
-        res.status(400).json(response);
-    } else {
-        const response: IGlobalResponse = {
-            status: false,
-            message: "An unknown error occurred.",
-            error: {
-                message: "Internal server error",
-                ...(isDevelopment && { detail: err }),
-            },
-        };
-        res.status(500).json(response);
+  if (err instanceof Error) {
+    const response: IGlobalResponse = {
+      status: false,
+      message: err.message,
+    };
+
+    const errorObj: {
+      message: string;
+      trace?: string | undefined;
+    } = { message: err.message };
+
+    if (isDevelopment && err.stack) {
+      errorObj.trace = err.stack;
     }
+
+    response.error = errorObj;
+
+    res.status(400).json(response);
+  } else {
+    const response: IGlobalResponse = {
+      status: false,
+      message: "An unexpected error occurred",
+      error: {
+        message: "Internal server error",
+      },
+    };
+
+    res.status(500).json(response);
+  }
 };
